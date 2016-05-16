@@ -1,0 +1,16 @@
+{
+    "name": "apiok/php_sdk",
+    "description": "Odnoklassniki SDK for PHP",
+    "type": "library",
+    "license": "MIT",
+    "authors": [],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Apiok\\": "src"
+        }
+    }
+}
