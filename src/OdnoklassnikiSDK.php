@@ -10,8 +10,10 @@ class OdnoklassnikiSDK {
     private static $app_public_key = "";
     private static $app_secret_key = "";
     private static $redirect_url = "";
-    private static $TOKEN_SERVICE_ADDRESS = "http://api.odnoklassniki.ru/oauth/token.do";
-    private static $API_REQUSET_ADDRESS = "http://api.odnoklassniki.ru/fb.do";
+    private static $scope = "";
+    private static $AUTHORIZE_ADDRESS = "https://connect.ok.ru/oauth/authorize";
+    private static $TOKEN_SERVICE_ADDRESS = "https://api.ok.ru/oauth/token.do";
+    private static $API_REQUEST_ADDRESS = "https://api.ok.ru/fb.do";
     private static $access_token;
     private static $refresh_token;
 
@@ -20,6 +22,7 @@ class OdnoklassnikiSDK {
         self::$app_public_key = $parameters['app_public_key'];
         self::$app_secret_key = $parameters['app_secret_key'];
         self::$redirect_url = $parameters['redirect_url'];
+        self::$scope = $parameters['scope'];
     }
     
     public static function getAppId() {
@@ -44,16 +47,16 @@ class OdnoklassnikiSDK {
     }
     
     public static function changeCodeToToken($code) {
-        $curl = curl_init(self::$TOKEN_SERVICE_ADDRESS);
-        curl_setopt($curl, CURLOPT_POST, true);
         $postFields = [
-            'code' => $code,
-            'redirect_uri' => self::$redirect_url,
-            'grant_type' => self::PARAMETER_NAME_AUTHORIZATION_CODE,
-            'client_id' => self::$app_id,
-            'client_secret' => self::$app_secret_key,
+          'code' => $code,
+          'redirect_uri' => self::$redirect_url,
+          'grant_type' => self::PARAMETER_NAME_AUTHORIZATION_CODE,
+          'client_id' => self::$app_id,
+          'client_secret' => self::$app_secret_key,
         ];
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $postFields);
+        $query = http_build_query($postFields);
+        $curl = curl_init(self::$TOKEN_SERVICE_ADDRESS . '?' . $query);
+        curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $s = curl_exec($curl);
         curl_close($curl);
@@ -68,15 +71,15 @@ class OdnoklassnikiSDK {
     }
     
     public static function updateAccessTokenWithRefreshToken() {
-        $curl = curl_init(self::$TOKEN_SERVICE_ADDRESS);
-        curl_setopt($curl, CURLOPT_POST, true);
         $postFields = [
-            'refresh_token' => self::$refresh_token,
-            'grant_type' => self::PARAMETER_NAME_REFRESH_TOKEN,
-            'client_id' => self::$app_id,
-            'client_secret' => self::$app_secret_key,
+          'refresh_token' => self::$refresh_token,
+          'grant_type' => self::PARAMETER_NAME_REFRESH_TOKEN,
+          'client_id' => self::$app_id,
+          'client_secret' => self::$app_secret_key,
         ];
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $postFields);
+        $query = http_build_query($postFields);
+        $curl = curl_init(self::$TOKEN_SERVICE_ADDRESS . '?' . $query);
+        curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $s = curl_exec($curl);
         curl_close($curl);
@@ -101,11 +104,22 @@ class OdnoklassnikiSDK {
         $parameters["sig"] = self::calcSignature($methodName, $parameters);
         $parameters[self::PARAMETER_NAME_ACCESS_TOKEN] = self::$access_token;
         $requestStr = http_build_query($parameters);
-        $curl = curl_init(self::$API_REQUSET_ADDRESS . "?" . $requestStr);
+        $curl = curl_init(self::$API_REQUEST_ADDRESS . "?" . $requestStr);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $s = curl_exec($curl);
         curl_close($curl);
         return json_decode($s, true);
+    }
+    
+    public static function getAuthorizeUrl() {
+        $query = http_build_query([
+            'client_id' => self::$app_id,
+            'scope' => self::$scope,
+            'response_type' => 'code',
+            'redirect_uri' => self::$redirect_url
+        ]);
+        
+        return self::$AUTHORIZE_ADDRESS . '?' . $query;
     }
     
     private static function calcSignature($methodName, array $parameters = []) {
