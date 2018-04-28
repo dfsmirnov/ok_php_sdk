@@ -17,7 +17,7 @@ class OdnoklassnikiSDK {
     private static $access_token;
     private static $refresh_token;
 
-    public static function setParameters(array $parameters = []) {
+    public static function setParameters(array $parameters = array()) {
         self::$app_id = $parameters['app_id'];
         self::$app_public_key = $parameters['app_public_key'];
         self::$app_secret_key = $parameters['app_secret_key'];
@@ -47,13 +47,13 @@ class OdnoklassnikiSDK {
     }
     
     public static function changeCodeToToken($code) {
-        $postFields = [
+        $postFields = array(
           'code' => $code,
           'redirect_uri' => self::$redirect_url,
           'grant_type' => self::PARAMETER_NAME_AUTHORIZATION_CODE,
           'client_id' => self::$app_id,
           'client_secret' => self::$app_secret_key,
-        ];
+        );
         $query = http_build_query($postFields);
         $curl = curl_init(self::$TOKEN_SERVICE_ADDRESS . '?' . $query);
         curl_setopt($curl, CURLOPT_POST, true);
@@ -71,12 +71,12 @@ class OdnoklassnikiSDK {
     }
     
     public static function updateAccessTokenWithRefreshToken() {
-        $postFields = [
+        $postFields = array(
           'refresh_token' => self::$refresh_token,
           'grant_type' => self::PARAMETER_NAME_REFRESH_TOKEN,
           'client_id' => self::$app_id,
           'client_secret' => self::$app_secret_key,
-        ];
+        );
         $query = http_build_query($postFields);
         $curl = curl_init(self::$TOKEN_SERVICE_ADDRESS . '?' . $query);
         curl_setopt($curl, CURLOPT_POST, true);
@@ -92,7 +92,7 @@ class OdnoklassnikiSDK {
         }
     }
     
-    public static function makeRequest($methodName, array $parameters = []) {
+    public static function makeRequest($methodName, array $parameters = array()) {
         if (is_null(self::$app_id) || is_null(self::$app_public_key) || is_null(self::$app_secret_key) || is_null(self::$access_token) ) {
             return null;
         }
@@ -112,17 +112,17 @@ class OdnoklassnikiSDK {
     }
     
     public static function getAuthorizeUrl() {
-        $query = http_build_query([
+        $query = http_build_query(array(
             'client_id' => self::$app_id,
             'scope' => self::$scope,
             'response_type' => 'code',
             'redirect_uri' => self::$redirect_url
-        ]);
+        ));
         
         return self::$AUTHORIZE_ADDRESS . '?' . $query;
     }
     
-    private static function calcSignature($methodName, array $parameters = []) {
+    private static function calcSignature($methodName, array $parameters = array()) {
         if (is_null(self::$app_id) || is_null(self::$app_public_key) || is_null(self::$app_secret_key) || is_null(self::$access_token) ) {
             return null;
         }
