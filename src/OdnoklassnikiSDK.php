@@ -23,6 +23,9 @@ class OdnoklassnikiSDK {
         self::$app_secret_key = $parameters['app_secret_key'];
         self::$redirect_url = $parameters['redirect_url'];
         self::$scope = $parameters['scope'];
+        if (isset($parameters['access_token'])){
+            self::$access_token = $parameters['access_token'];
+        }
     }
     
     public static function getAppId() {
